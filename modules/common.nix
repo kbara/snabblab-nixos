@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   require = [
@@ -66,7 +66,14 @@
   #  /run/current-system/sw/bin/nix-channel --update
   #'';
 
+  # Auto upgrade NixOS
+  system.autoUpgrade.enable = true;
+  systemd.services.nixos-upgrade.environment.NIX_PATH = "/nix/var/nix/profiles/per-user/root/channels/snabblab/:/nix/var/nix/profiles/per-user/root/channels/";
+  systemd.services.nixos-upgrade.environment.NIXOS_CONFIG = pkgs.writeText "configuration.nix" ''
+    (import <snabblab/machines>).${config.networking.hostName}.config
+  '';
 
+  # Expose machines for Hydra slaves
   programs.ssh.extraConfig = ''
     Host grindelwald
         Hostname lab1.snabb.co
